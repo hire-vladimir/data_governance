@@ -1,0 +1,45 @@
+<dashboard>
+  <label>User Audit - Splunk accounts</label>
+  <description>Dashboard concentrates on internal Splunk based accounts that are defined on this Splunk instance</description>
+  <row>
+    <panel>
+      <table>
+        <title>Account modifications (last 7 days)</title>
+        <searchString>index=_audit action=edit_user (operation=create OR operation=remove) | table _time, operation, user, object, info | rename info AS status, user AS src_user, object AS dest_user</searchString>
+        <earliestTime>-7d@h</earliestTime>
+        <latestTime>now</latestTime>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Role modifications (last 7 days)</title>
+        <searchString>index=_audit action=edit_roles (operation=create OR operation=remove) | table _time, operation, user, object, info | rename info AS status, user AS src_user, object AS role</searchString>
+        <earliestTime>-7d@h</earliestTime>
+        <latestTime>now</latestTime>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Internal users by password age</title>
+        <searchString>index=_audit action="password change" OR (action="edit_user" AND operation="create") | eval user=if(operation=="create",object,user) | stats latest(_time) AS lastpwchange by user | eval lastpwd_day_ago=round((now()-lastpwchange)/60/60/24, 1) | convert ctime(lastpwchange) | sort - lastpwd_day_ago</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

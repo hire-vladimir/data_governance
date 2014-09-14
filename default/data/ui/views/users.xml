@@ -1,0 +1,149 @@
+<form script="autodiscover.js">
+  <label>User Overview</label>
+  <description>That are defined on this Splunk instance</description>
+  <searchTemplate>| rest splunk_server=local /services/authentication/users</searchTemplate>
+  <row>
+    <panel>
+      <single>
+        <title>Total number of users</title>
+        <searchPostProcess>| stats count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime>now</latestTime>
+        <option name="drilldown">all</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total privileged users</title>
+        <searchPostProcess>| search roles=admin | stats count</searchPostProcess>
+        <option name="linkView">search</option>
+        <option name="drilldown">all</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Users that can delete</title>
+        <searchPostProcess>| where capabilities="delete_by_keyword" | stats count | rangemap field=count high=1-100 default=low</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime>now</latestTime>
+        <option name="linkView">search</option>
+        <option name="classField">range</option>
+        <option name="drilldown">all</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>User list</title>
+        <searchPostProcess>|  rest splunk_server=local /services/authentication/users |  eval cc=mvcount(capabilities) | eval rc=mvcount(roles) | `prettymv(roles)` | fields title, realname, email, type, roles, rc, cc | rename title AS username realname AS name cc AS "capability count" rc AS "role count"  | join username [`compute_user_to_indexes`] | `indexes_to_counts(accessible_indexes)` | `prettyIndexNotation(accessible_indexes)`   | sort - totalAccess  | rename accessible_indexes AS "accessible indexes" totalAccess AS "accessible indexes count"</searchPostProcess>
+        <option name="list.drilldown">full</option>
+        <option name="list.wrap">1</option>
+        <option name="maxLines">5</option>
+        <option name="raw.drilldown">full</option>
+        <option name="rowNumbers">false</option>
+        <option name="table.drilldown">1</option>
+        <option name="table.wrap">1</option>
+        <option name="type">list</option>
+        <option name="wrap">true</option>
+        <option name="dataOverlayMode">heatmap</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>user_details?form.user=$row.username$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Users by authentication type</title>
+        <searchPostProcess>|  stats count by type</searchPostProcess>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Users by role</title>
+        <searchPostProcess>| stats count by roles</searchPostProcess>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <input type="multiselect" token="sankey_u2r_user" searchWhenChanged="true">
+        <label>Users:</label>
+        <choice value="*">All</choice>
+        <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="user" fieldForValue="user">| rest splunk_server=local /services/authentication/users | fields title | rename title AS user | sort user</populatingSearch>
+        <default>*</default>
+        <prefix>(</prefix>
+        <suffix>)</suffix>
+        <valuePrefix>users="</valuePrefix>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR </delimiter>
+      </input>
+      <input type="multiselect" token="sankey_u2r_role" searchWhenChanged="true">
+        <label>Roles:</label>
+        <choice value="*">All</choice>
+        <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="role" fieldForValue="role">| rest splunk_server=local /services/authorization/roles | fields title | rename title AS role | sort role</populatingSearch>
+        <default>*</default>
+        <prefix>(</prefix>
+        <suffix>)</suffix>
+        <valuePrefix>roles="</valuePrefix>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR </delimiter>
+      </input>
+      <html>
+      <h2>User to Role mapping</h2>
+      <div id="sankeySearch" class="splunk-manager" data-require="splunkjs/mvc/searchmanager" data-options="{                                 &quot;search&quot;: {     &quot;value&quot;: &quot;| rest /services/authentication/users | stats count by title, roles | rename title AS users | search $$sankey_u2r_user$$ AND $$sankey_u2r_role$$&quot;,     &quot;type&quot;: &quot;token_safe&quot;    },                             &quot;earliest_time&quot;: &quot;-7d&quot;,                             &quot;status_buckets&quot;: 0,                             &quot;cancelOnUnload&quot;: true,                             &quot;auto_cancel&quot;: 90,                             &quot;preview&quot;: true                        }"/>
+      <div id="sankeyChart" 
+        class="splunk-view" 
+        data-require="app/data_governance/components/sankeydiagram/sankeydiagram" 
+        data-options="{                         
+			&quot;managerid&quot;: &quot;sankeySearch&quot;,                         
+			&quot;sourceField&quot;: &quot;users&quot;,                         
+			&quot;destinationField&quot;: &quot;roles&quot;,                         
+			&quot;valueField&quot;: &quot;count&quot;, 
+			&quot;height&quot;: &quot;800&quot;   
+		}"/>
+      
+    </html>
+    </panel>
+  </row>
+</form>

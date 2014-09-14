@@ -1,0 +1,284 @@
+[app/ui]
+version = 6.0.2
+modtime = 1396148277.865932000
+
+[app/launcher]
+version = 6.0.2
+modtime = 1396148277.867406000
+
+[views/users]
+owner = admin
+version = 6.1.1
+modtime = 1410444211.378673000
+
+[views/roles]
+owner = admin
+version = 6.1.1
+modtime = 1410444142.686061000
+
+[macros/splunk_default_vs_custom_roles]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408607887.610208000
+
+[views/user_details]
+owner = admin
+version = 6.1.1
+modtime = 1409896260.962514000
+
+[savedsearches/adup1]
+access = read : [ * ], write : [ admin, power ]
+export = system
+owner = admin
+version = 6.1.1
+modtime = 1402029338.246651000
+
+[views/role_details]
+owner = admin
+version = 6.1.1
+modtime = 1410432708.179416000
+
+[views/capabilities]
+owner = admin
+version = 6.1.1
+modtime = 1410444246.623694000
+
+[views/capability_details]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1410433118.146814000
+
+[views/overview]
+owner = admin
+version = 6.1.1
+modtime = 1410444956.830951000
+
+[nav/default]
+version = 6.1.1
+modtime = 1410439203.165454000
+
+[savedsearches/Collect%20governance%20system%20details]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408593331.172203000
+
+[macros/mvcount_zero%282%29]
+access = read : [ * ], write : [ * ]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408216031.604777000
+
+[macros/compute_accessible_index_count]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408227581.960909000
+
+[macros/prettyIndexNotation%281%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408219993.820031000
+
+[macros/prettymv%281%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408220109.585914000
+
+[views/health_monitor]
+owner = admin
+version = 6.1.1
+modtime = 1410443314.697473000
+
+[views/about]
+owner = admin
+version = 6.1.1
+modtime = 1410436397.401772000
+
+[macros/prettyRoleNotation%281%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408225739.880399000
+
+[macros/compute_user_to_indexes]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408254801.192585000
+
+[macros/indexes_to_counts%281%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408239883.756048000
+
+[views/index_details]
+owner = admin
+version = 6.1.1
+modtime = 1410444316.832774000
+
+[macros/splunk_default_vs_custom_indexes]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408260007.386529000
+
+[views/indexes]
+owner = admin
+version = 6.1.1
+modtime = 1410433275.956634000
+
+[macros/compute_indexes_to_roles_and_users]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408264576.696186000
+
+[transforms/splunk_capability_details]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408281879.657650000
+
+[macros/compute_capabilities_to_roles]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408283728.041094000
+
+[macros/compute_capabilities_to_users]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408283731.509832000
+
+[views/app_details]
+owner = admin
+version = 6.1.1
+modtime = 1410436798.084511000
+
+[views/apps]
+owner = admin
+version = 6.1.1
+modtime = 1410435754.167154000
+
+[macros/splunk_internal_apps]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408553667.958584000
+
+[macros/prettybool%281%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408580039.059978000
+
+[macros/splunk_classify_apps]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408553698.783209000
+
+[macros/prettyUserNotation%281%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408558055.001803000
+
+[macros/convert_delims_space2spacecomma%281%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408559361.369136000
+
+[macros/compute_apps_to_users_and_roles]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408581264.454208000
+
+[macros/convert_all_delims_space2spacecomma%281%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408580048.392411000
+
+[macros/prettyObjectDetails]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408580054.180048000
+
+[views/issues]
+owner = admin
+version = 6.1.1
+modtime = 1410445063.067712000
+
+[macros/compute_user_executed_searches%281%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408589914.745913000
+
+[macros/search_manager_app_overview_app_to_roles]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408589921.375994000
+
+[macros/search_manager_app_overview_app_to_roles%284%29]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408589926.624337000
+
+[macros/compute_environment_detail_counts]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408590122.522061000
+
+[macros/get_environment_detail_counts]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408592514.220710000
+
+[lookups/splunk_capabilities.csv]
+access = read : [ * ], write : [ admin ]
+export = none
+owner = nobody
+version = 6.1.1
+modtime = 1408593028.316393000
+
+[macros/get_special_thanks]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408596171.525203000
+
+[macros/special_names]
+export = none
+owner = admin
+version = 6.1.1
+modtime = 1408596279.403140000
+
+[views/user_audit]
+owner = admin
+version = 6.1.1
+modtime = 1408823703.651911000
+
+[]
+access = read : [ admin ], write : [ admin ]
+export = none
+version = 6.1.1
+modtime = 1410444768.789216000

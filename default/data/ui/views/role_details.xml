@@ -1,0 +1,158 @@
+<form script="autodiscover.js">
+  <label>Role Detail</label>
+  <description/>
+  <fieldset submitButton="true" autoRun="true">
+    <input type="dropdown" token="role">
+      <label>Enter role:</label>
+      <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="role" fieldForValue="role">| rest splunk_server=local /services/authorization/roles | fields title | rename title AS role | sort role</populatingSearch>
+      <default>admin</default>
+    </input>
+  </fieldset>
+  <searchTemplate>| rest splunk_server=local /services/authorization/roles/$role$ |  eval capabilities=mvcount(mvappend(capabilities, imported_capabilities))  | `splunk_default_vs_custom_roles`  | fillnull value="" 
+| rename title AS role   | `prettymv(imported_roles)` | `prettymv(srchIndexesAllowed)` | `prettymv(srchIndexesDefault)`   
+| `indexes_to_counts(srchIndexesAllowed)` | `prettyIndexNotation(accessible_indexes)` | `prettyIndexNotation(srchIndexesDefault)` 
+
+| fields role, type, capabilities, imported_roles, srchIndexesDefault, accessible_indexes, totalAccess | rename imported_roles AS inherited srchIndexesDefault AS "default searchable indexes", srchIndexesAllowed AS "accessible indexes" totalAccess AS "accessible index count"  
+
+    | join type=outer role [| rest splunk_server=local /services/authentication/users | mvexpand roles | stats count AS "user count" by roles | rename roles AS role] | fillnull value=0 "user count" | sort - "user count"</searchTemplate>
+  <row>
+    <panel>
+      <table>
+        <title>Role details</title>
+        <searchPostProcess>| fields role, type, inherited, capabilities, "user count" | rename inherited AS "inherited from"</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Role data access</title>
+        <searchPostProcess>| rename accessible_indexes AS "accessible indexes" | fields role, "default searchable indexes", "accessible indexes", "accessible index count"</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Role capabilities</title>
+        <searchString>| rest splunk_server=local /services/authorization/roles/admin | eval capabilities=mvappend(capabilities, imported_capabilities) | mvexpand capabilities | rename capabilities AS capability | eval imported=if(isnotnull(mvfind(imported_capabilities, "^".capability."$")), "yes", "no") | fields + capability, imported | sort capability</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>capability_details?form.capability=$row.capability$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Role users</title>
+        <searchString>| rest splunk_server=local /services/authentication/users | fields title, roles | rename title AS user roles AS role | mvexpand role | where role="$role$" | fields - role</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>user_details?form.user=$row.user$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Role indexes</title>
+        <searchString>| `compute_indexes_to_roles_and_users` | fields - users, role_count, user_count | makemv delim=", " roles | mvexpand roles | rename roles AS role | where role="$role$" | fields - role</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>index_details?form.index=$row.index$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+      <h2>Role to index mapping</h2>
+      <div id="sankeySearch" class="splunk-manager" data-require="splunkjs/mvc/searchmanager" data-options="{                             &quot;search&quot;: {     &quot;type&quot;: &quot;token_safe&quot;,     &quot;value&quot;: &quot;| `compute_indexes_to_roles_and_users` | fields - users, role_count, user_count | makemv delim=\&quot;, \&quot; roles | mvexpand roles | rename roles AS role | eval count=1 | where role=\&quot;$$role$$\&quot;&quot;    },                              &quot;earliest_time&quot;: &quot;-7d&quot;,                             &quot;status_buckets&quot;: 0,                             &quot;cancelOnUnload&quot;: true,                             &quot;auto_cancel&quot;: 90,                             &quot;preview&quot;: true                        }"/>
+      <div id="sankeyChart" class="splunk-view" data-require="app/data_governance/components/sankeydiagram/sankeydiagram" data-options="{                             &quot;managerid&quot;: &quot;sankeySearch&quot;,                             &quot;sourceField&quot;: &quot;role&quot;,                             &quot;destinationField&quot;: &quot;index&quot;,                             &quot;valueField&quot;: &quot;count&quot;      }"/>
+
+    </html>
+    </panel>
+  </row>
+</form>

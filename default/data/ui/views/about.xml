@@ -1,0 +1,99 @@
+<dashboard>
+  <label>About</label>
+  <description/>
+  <searchTemplate>| `compute_apps_to_users_and_roles` | where app="data_governance"</searchTemplate>
+  <row>
+    <panel>
+      <single>
+        <title>Version</title>
+        <searchString>| rest splunk_server=local /services/apps/local/data_governance | fields version</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Author</title>
+        <searchString>|localop | stats count | eval authorContact="hire.vladimir@gmail.com" | fields authorContact</searchString>
+        <option name="drilldown">all</option>
+        <option name="underLabel">email</option>
+        <option name="linkView">search</option>
+        <drilldown>
+          <link>mailto:hire.vladimir@gmail.com</link>
+        </drilldown>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <single>
+        <title>Did you know?</title>
+        <searchPostProcess>| fields user_read_count</searchPostProcess>
+        <option name="drilldown">none</option>
+        <option name="linkView">search</option>
+        <option name="underLabel">Users with read access</option>
+      </single>
+      <single>
+        <searchPostProcess>| fields user_write_count</searchPostProcess>
+        <option name="drilldown">none</option>
+        <option name="underLabel">Users with write access</option>
+        <option name="linkView">search</option>
+      </single>
+      <single>
+        <title/>
+        <searchPostProcess>| fields role_read_count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+        <option name="underLabel">Roles with read access</option>
+      </single>
+      <single>
+        <title/>
+        <searchPostProcess>| fields role_write_count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+        <option name="underLabel">Roles with write access</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Description</title>
+        <searchString>| rest splunk_server=local /services/apps/local/data_governance | fields label, description | rename label AS name</searchString>
+        <earliestTime>$earliest$</earliestTime>
+        <latestTime>$latest$</latestTime>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+        <h2>About this project</h2>
+        This project is maintained on GitHub, follow the project @ <a href="https://github.com/hire-vladimir/data_governance">https://github.com/hire-vladimir/data_governance</a>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Special thanks (alphabetical)</title>
+        <searchString>| localop | stats count | fields - count | eval specialThanks=`special_names` | makemv delim=", " specialThanks | mvexpand specialThanks | sort specialThanks | mvcombine specialThanks | `prettymv(specialThanks)` | rename specialThanks AS "Names"</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>

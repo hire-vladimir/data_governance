@@ -1,0 +1,163 @@
+<form>
+  <label>Overview</label>
+  <fieldset submitButton="false">
+    <input type="time" token="timerange">
+      <label>Time range:</label>
+      <default>
+        <earliestTime>-7d@h</earliestTime>
+        <latestTime>now</latestTime>
+      </default>
+    </input>
+  </fieldset>
+  
+  
+  <row>
+    <panel>
+      <html>
+        <h2>Welcome</h2>
+        Data Governance app attempts to provide an insight into understanding of access, policies, handling, exposure, and risk in the Splunk environment. 
+        <br/><br/>
+While every organization will have different governance policies and goals, this app will help with determining the current posture.
+<br/><br/>
+        App is split into several different sections that deal with specific domains:
+<ul>
+  <li>Users</li>
+<li>Roles</li>
+<li>Capabilities</li>
+<li>Indexes</li>
+<li>Apps</li>
+  <li>Resources</li>
+  </ul>
+
+        <br/>
+        <br/>
+        In order to collect and provide meaningful information about the environment, <i>“admin”</i> role credentials are required. Alternatively, regular users can be granted following (hopefully via a dedicated role):
+	<ul>
+      <li>Access to <i>_internal</i>, <i>_audit</i>, and <i>summary</i> indexes</li>
+      <li><i>admin_all_objects</i>, <i>edit_users</i>, <i>edit_roles</i> capabilities</li>
+        </ul>
+      </html>
+    </panel>
+    <panel>
+      <chart>
+        <title>Access activity</title>
+        <searchString>index=_internal sourcetype=splunkd_access OR sourcetype=splunkd_web_access | eval action=case(like(status,"2%") OR like(status,"3%"), "allowed", like(status, "4%"), "blocked") | fillnull value="unknown" action | timechart count by action</searchString>
+        <earliestTime>$timerange.earliest$</earliestTime>
+        <latestTime>$timerange.latest$</latestTime>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">log</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Access control trend</title>
+        <searchString>| `get_environment_detail_counts` | timechart latest(users) AS Users, latest(roles) AS roles</searchString>
+        <earliestTime>$timerange.earliest$</earliestTime>
+        <latestTime>$timerange.latest$</latestTime>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Stored data trend</title>
+        <searchString>| `get_environment_detail_counts` | timechart latest(sources) AS sources, latest(sourcetypes) AS sourcetypes, latest(hosts) AS hosts, latest(indexes) as indexes</searchString>
+        <earliestTime>$timerange.earliest$</earliestTime>
+        <latestTime>$timerange.latest$</latestTime>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>App trend</title>
+        <searchString>| `get_environment_detail_counts` | timechart latest(apps) AS apps, latest(dashboards) AS dashboards</searchString>
+        <earliestTime>$timerange.earliest$</earliestTime>
+        <latestTime>$timerange.latest$</latestTime>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Top searches (last 24 hours)</title>
+        <searchString>`compute_user_executed_searches(*)`</searchString>
+        <earliestTime>-24h@h</earliestTime>
+        <latestTime>now</latestTime>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+</form>

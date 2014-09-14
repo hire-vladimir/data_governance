@@ -1,0 +1,209 @@
+<form script="autodiscover.js">
+  <label>App Overview</label>
+  <description>That are defined on this Splunk instance</description>
+  <searchTemplate>| rest splunk_server=local /services/apps/local</searchTemplate>
+  <row>
+    <panel>
+      <single>
+        <title>Total apps</title>
+        <searchPostProcess>| stats count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Enabled apps</title>
+        <searchPostProcess>| where disabled=0 | stats count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Disabled apps</title>
+        <searchPostProcess>| where disabled=1 | stats count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+     <panel>
+      <single>
+        <title>Hidden apps</title>
+        <searchPostProcess>| where visible=0 | stats count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>App by status</title>
+        <searchPostProcess>| fields label, visible, disabled | eval status=case(disabled==1, "disabled", visible==0, "hidden", 1==1, "enabled") | stats count by status</searchPostProcess>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>App by source</title>
+        <searchPostProcess>| fields label, details | `splunk_classify_apps` | stats count by app_source | rename app_source AS "App source"</searchPostProcess>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>App list</title>
+        <searchPostProcess>| fields label, title, details, eai:acl.sharing, eai:acl.perms.read, eai:acl.perms.write, version, visible | rename eai:acl.perms.read AS read, eai:acl.perms.write AS modify eai:acl.sharing AS "sharing context"  | `prettybool(visible)` | `prettymv(read)` | `prettymv(modify)` | `prettyRoleNotation(read)` | `prettyRoleNotation(modify)`  | rename read AS "read roles" modify AS "write roles" title AS app
+
+| sort label</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>app_details?form.app=$row.app$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <input type="dropdown" token="role_type" searchWhenChanged="true">
+        <label>Permission type:</label>
+        <choice value="roles_read">Read</choice>
+        <choice value="roles_write">Write</choice>
+        <default>roles_read</default>
+      </input>
+      <input type="multiselect" token="role_app" searchWhenChanged="true">
+        <label>Apps:</label>
+        <prefix>(</prefix>
+        <suffix>)</suffix>
+        <valuePrefix>app="</valuePrefix>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR </delimiter>
+        <choice value="*">All</choice>
+        <default>*</default>
+        <populatingSearch fieldForLabel="label" fieldForValue="title">| rest splunk_server=local /services/apps/local | fields label, title, disabled, visible</populatingSearch>
+      </input>
+      <input type="multiselect" token="role" searchWhenChanged="true">
+        <label>Roles:</label>
+        <choice value="*">All</choice>
+        <default>*</default>
+        <populatingSearch fieldForLabel="role" fieldForValue="role">| rest splunk_server=local /services/authorization/roles | rename title AS role | fields role</populatingSearch>
+        <prefix>(</prefix>
+        <suffix>)</suffix>
+        <valueSuffix>"</valueSuffix>
+        <valuePrefix>role="</valuePrefix>
+        <delimiter> OR </delimiter>
+      </input>
+      <input type="multiselect" token="role_state" searchWhenChanged="true">
+        <label>App state:</label>
+        <choice value="*">All</choice>
+        <choice value="disabled=0">Enabled</choice>
+        <choice value="visible=1">Visible</choice>
+        <choice value="disabled=1">Disabled</choice>
+        <choice value="visible=0">Hidden</choice>
+        <prefix>(</prefix>
+        <suffix>)</suffix>
+        <delimiter> OR </delimiter>
+        <default>disabled=0,visible=1</default>
+      </input>
+      <html>
+      <h2>Roles to apps</h2>
+      <div id="sankeySearchRoles" class="splunk-manager" data-require="splunkjs/mvc/searchmanager" data-options="{                                         &quot;search&quot;: {               &quot;type&quot;: &quot;token_safe&quot;,               &quot;value&quot;: &quot;| `compute_apps_to_users_and_roles` | join app [| rest splunk_server=local /services/apps/local | rename title AS app | fields app, disabled, visible] | rename $$role_type$$ AS role | search $$role_app$$ AND $$role_state$$ | fields app, role | makemv delim=\&quot;, \&quot; role | mvexpand role | stats count by app, role | search $$role$$&quot;            },                                         &quot;earliest_time&quot;: &quot;-7d&quot;,                                         &quot;status_buckets&quot;: 0,                                         &quot;cancelOnUnload&quot;: true,                                         &quot;auto_cancel&quot;: 90,                                         &quot;preview&quot;: true                                 }"/>
+      <div id="sankeyChartRoles" class="splunk-view" data-require="app/data_governance/components/sankeydiagram/sankeydiagram" data-options="{                                     &quot;managerid&quot;: &quot;sankeySearchRoles&quot;,                                     &quot;sourceField&quot;: &quot;role&quot;,                                     &quot;destinationField&quot;: &quot;app&quot;,                                     &quot;valueField&quot;: &quot;count&quot;,            &quot;height&quot;: 800         }"/>
+
+    </html>
+    </panel>
+    <panel>
+      <input type="dropdown" token="user_type" searchWhenChanged="true">
+        <label>Permission type:</label>
+        <choice value="users_read">Read</choice>
+        <choice value="users_write">Write</choice>
+        <default>users_read</default>
+      </input>
+      <input type="multiselect" token="user_app" searchWhenChanged="true">
+        <label>Apps:</label>
+        <prefix>(</prefix>
+        <suffix>)</suffix>
+        <valuePrefix>app="</valuePrefix>
+        <valueSuffix>"</valueSuffix>
+        <delimiter> OR </delimiter>
+        <choice value="*">All</choice>
+        <default>*</default>
+        <populatingSearch fieldForLabel="label" fieldForValue="title">| rest splunk_server=local /services/apps/local | fields label, title, disabled, visible</populatingSearch>
+      </input>
+      <input type="multiselect" token="user" searchWhenChanged="true">
+        <label>Users:</label>
+        <choice value="*">All</choice>
+        <default>*</default>
+        <populatingSearch fieldForLabel="user" fieldForValue="user">| rest splunk_server=local /services/authentication/users | rename title AS user | fields user</populatingSearch>
+        <prefix>(</prefix>
+        <suffix>)</suffix>
+        <valueSuffix>"</valueSuffix>
+        <valuePrefix>user="</valuePrefix>
+        <delimiter> OR </delimiter>
+      </input>
+      <input type="multiselect" token="user_state" searchWhenChanged="true">
+        <label>App state:</label>
+        <choice value="*">All</choice>
+        <choice value="disabled=0">Enabled</choice>
+        <choice value="visible=1">Visible</choice>
+        <choice value="disabled=1">Disabled</choice>
+        <choice value="visible=0">Hidden</choice>
+        <prefix>(</prefix>
+        <suffix>)</suffix>
+        <delimiter> OR </delimiter>
+        <default>disabled=0,visible=1</default>
+      </input>
+      <html>
+      <h2>Users to apps</h2>
+      <div id="sankeySearchUsers" class="splunk-manager" data-require="splunkjs/mvc/searchmanager" data-options="{                                     &quot;search&quot;: {               &quot;type&quot;: &quot;token_safe&quot;,               &quot;value&quot;: &quot;| `compute_apps_to_users_and_roles` | join app [| rest splunk_server=local /services/apps/local | rename title AS app | fields app, disabled, visible] | rename $$user_type$$ AS user | search $$user_app$$ AND $$user_state$$ | fields app, user | makemv delim=\&quot;, \&quot; user | mvexpand user | stats count by app, user | search $$user$$&quot;    },                                 &quot;earliest_time&quot;: &quot;-7d&quot;,                                 &quot;status_buckets&quot;: 0,                                 &quot;cancelOnUnload&quot;: true,                                 &quot;auto_cancel&quot;: 90,                                 &quot;preview&quot;: true                           }"/>
+      <div id="sankeyChartUsers" class="splunk-view" data-require="app/data_governance/components/sankeydiagram/sankeydiagram" data-options="{                                 &quot;managerid&quot;: &quot;sankeySearchUsers&quot;,                                 &quot;sourceField&quot;: &quot;user&quot;,                                 &quot;destinationField&quot;: &quot;app&quot;,                                 &quot;valueField&quot;: &quot;count&quot;,        &quot;height&quot;: 800      }"/>
+
+    </html>
+    </panel>
+  </row>
+</form>

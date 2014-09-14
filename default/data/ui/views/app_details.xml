@@ -1,0 +1,233 @@
+<form script="autodiscover.js">
+  <label>App Detail</label>
+  <description>That are defined on this Splunk instance</description>
+  <fieldset autoRun="true">
+    <input type="dropdown" token="app">
+      <label>Select app:</label>
+      <default>splunk_governance</default>
+      <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="label" fieldForValue="app">| rest splunk_server=local /services/apps/local | rename title AS app | fields app, label, disabled, visible | sort label</populatingSearch>
+    </input>
+  </fieldset>
+  <searchTemplate>| `compute_apps_to_users_and_roles` | where app="$app$"</searchTemplate>
+  <row>
+    <panel>
+      <single>
+        <title>Users with read access</title>
+        <searchPostProcess>| fields user_read_count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Users with write access</title>
+        <searchPostProcess>| fields user_write_count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Roles with read access</title>
+        <searchPostProcess>| fields role_read_count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Roles with write access</title>
+        <searchPostProcess>| fields role_write_count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>App details</title>
+        <searchString>| rest splunk_server=local /services/apps/local/$app$ |  fields label, title, details, eai:acl.sharing, eai:acl.perms.read, eai:acl.perms.write, version, visible | rename eai:acl.perms.read AS read, eai:acl.perms.write AS modify eai:acl.sharing AS "sharing context" | `prettybool(visible)` | `prettymv(read)` | `prettymv(modify)` | `prettyRoleNotation(read)` | `prettyRoleNotation(modify)`  | rename read AS "read roles" modify AS "write roles"</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Users with read access</title>
+        <searchPostProcess>| fields users_read | rename users_read AS users | makemv delim=", " users| mvexpand users | sort users</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>user_details?form.user=$row.users$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Users with write access</title>
+        <searchPostProcess>| fields users_write | rename users_write AS users | makemv delim=", " users| mvexpand users | sort users</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>user_details?form.user=$row.users$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Roles with read access</title>
+        <searchPostProcess>| fields roles_read | rename roles_read AS roles | makemv delim=", " roles| mvexpand roles | sort roles</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>role_details?form.role=$row.roles$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Roles with write access</title>
+        <searchPostProcess>| fields roles_write | rename roles_write AS roles | makemv delim=", " roles| mvexpand roles | sort roles</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>role_details?form.role=$row.roles$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Dashboard access activity (last 7 days)</title>
+        <searchString>index=_internal source=*web_access.log* /app/$app$/ uri="*/app/$app$/*"  | rex "GET /[^/]+/app/(?&lt;app_view&gt;[^/ ?]+/[^/ ?]+) " | search app_view=* | timechart count by app_view</searchString>
+        <earliestTime>-7d@h</earliestTime>
+        <latestTime>now</latestTime>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>User access activity (last 7 days)</title>
+        <searchString>index=_internal source=*web_access.log* /app/$app$/ uri="*/app/$app$/*"  | rex "GET /[^/]+/app/(?&lt;app_view&gt;[^/ ?]+/[^/ ?]+) " | search app_view=* | timechart count by user</searchString>
+        <earliestTime>-7d@h</earliestTime>
+        <latestTime>now</latestTime>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>App saved searches</title>
+        <searchString>| rest /servicesNS/-/-/saved/searches/ | where 'eai:acl.app'="$app$" | `prettyObjectDetails`</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>
+            <![CDATA[/manager/data_governance/saved/searches?ns=$row.app$&pwnr=-&search=$row.title$&app_only=1&count=25]]>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>App dashboards</title>
+        <searchString>| rest /servicesNS/-/-/data/ui/views | where 'eai:acl.app'="$app$"  | `prettyObjectDetails`</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>
+            <![CDATA[/manager/data_governance/data/ui/views?ns=$row.app$&pwnr=-&search=$row.title$&app_only=1&count=25]]>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>App lookup tables</title>
+        <searchString>| rest /servicesNS/-/-/data/lookup-table-files | where 'eai:acl.app'="$app$" | `prettyObjectDetails`</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+         <drilldown>
+          <link>
+            <![CDATA[/manager/data_governance/data/lookup-table-files?ns=$row.app$&pwnr=-&search=$row.title$&app_only=1&count=25]]>
+          </link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+</form>

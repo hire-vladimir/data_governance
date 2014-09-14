@@ -1,0 +1,44 @@
+<dashboard>
+  <label>Capability Overview</label>
+  <description>That are defined on this Splunk instance</description>
+  <searchTemplate>| rest splunk_server=local /services/authorization/capabilities | fields capabilities | mvexpand capabilities | rename capabilities AS capability | lookup splunk_capability_details capability_name AS capability
+
+| `compute_capabilities_to_users`
+    | `compute_capabilities_to_roles`</searchTemplate>
+  <row>
+    <panel>
+      <single>
+        <title>Capability count</title>
+        <searchPostProcess>| stats count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Unassigned capabilities</title>
+        <searchPostProcess>| where 'role_count'=0 | stats count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">all</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Capability list</title>
+        <searchPostProcess>| fields capability, capability_description, role_count, user_count | rename capability_description AS description role_count AS "#roles" user_count AS "#users"</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">25</option>
+        <drilldown>
+          <link>capability_details?form.capability=$row.capability$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+</dashboard>

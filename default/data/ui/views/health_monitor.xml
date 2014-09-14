@@ -1,0 +1,34 @@
+<dashboard>
+  <label>Health Monitor</label>
+  
+  <row><panel><html><h2>THIS IS A MOCK SCREEN, FUTURE VERSION IDEAS</h2>Ideas? Suggestions? <a href="mailto:hire.vladimir@gmail.com">hire.vladimir@gmail.com</a> OR visit <a href="https://github.com/hire-vladimir/data_governance">https://github.com/hire-vladimir/data_governance</a></html></panel></row>
+  <row>
+    <panel>
+      <html>
+        <h2>list of indicators..green, yellow, red</h2>
+        <ol>
+          <li>if more then 10%? of users are admins, throw red flag</li>
+          <li>if more then 10%? of users have access to all indexes, throw yellow flag</li>
+          <li>if too many indexes are searcehd by default, yellow flag for performance</li>
+          <li>if no custom roles are defined and more then 10 users, throw yellow flag</li>
+          <li>if more then one role has delete capability, throw yellow flag</li>
+          <li>if more then one role has admin_all_objects capability, throw red flag</li>
+          <li>if only default indexes are present, flag red</li>
+          <li>if main has data in it, flag as yellow</li>
+          <li>if https is off, red flag</li>
+          <li>if all users have r/w access to all enabled/visible apps, yellow flag</li>
+          <li>if more than 10 users, and splunk auth is only cred provider, yellow flag</li>
+          <li>if ad auth is used, and more then 10 splunk auth accounts are used, yellow flag</li>
+          <li/>
+          <li/>
+          <li/>
+          <li/>
+          <li/>
+          <li/>
+          <li/>
+          <li/>
+        </ol>
+      </html>
+    </panel>
+  </row>
+</dashboard>

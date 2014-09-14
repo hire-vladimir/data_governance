@@ -1,0 +1,42 @@
+<nav search_view="search" color="#238B45">
+  <view name="overview" default="true" />
+  
+  <collection label="Users">
+    <view name="users" />
+    <view name="user_details" />
+  </collection>
+  
+  <collection label="Roles">
+    <view name="roles" />
+    <view name="role_details" />
+  </collection>
+  
+  <collection label="Capabilities">
+    <view name="capabilities" />
+    <view name="capability_details" />
+  </collection>
+  
+  <collection label="Indexes">
+    <view name="indexes" />
+    <view name="index_details" />
+  </collection>
+  
+  <collection label="Apps">
+    <view name="apps" />
+    <view name="app_details" />
+  </collection>
+  
+  <collection label="Resources">
+    <view name="health_monitor" />
+    <collection label="Documentation">
+      <a href="http://docs.splunk.com/Documentation/Splunk/latest/Security/WhatyoucansecurewithSplunk">Securing Splunk</a>
+       <a href="http://docs.splunk.com">Splunk Docs</a>
+    </collection>
+    <a href="https://github.com/hire-vladimir/data_governance/issues">Enhancements, issues, bugs</a>
+	<view name="about" />
+  </collection>
+  
+  <view name="reports" />
+  <view name="dashboards" />
+  <view name="search" />
+</nav>

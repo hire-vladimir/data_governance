@@ -1,0 +1,121 @@
+<form script="autodiscover.js">
+  <label>User Detail</label>
+  <description>That are defined on this Splunk instance</description>
+  <fieldset autoRun="true">
+    <input type="dropdown" token="user">
+      <label>Enter username:</label>
+      <default>admin</default>
+      <populatingSearch fieldForLabel="title" fieldForValue="title">| rest splunk_server=local /services/authentication/users |  fields title | sort title</populatingSearch>
+    </input>
+  </fieldset>
+  <searchTemplate>| rest splunk_server=local /services/authentication/users/$user$</searchTemplate>
+  <row>
+    <panel>
+      <table>
+        <title>User details</title>
+        <searchPostProcess>| eval n=mvcount(capabilities) | fields title, realname, email, roles, n, defaultApp, tz, type | rename title AS username n AS "number of capabilities", defaultApp AS "default app" | eval tz=if(tz=="","system default",tz)</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>User data access</title>
+        <searchString>| localop | stats count | eval username="$user$" | table username | join username [`compute_user_to_indexes`]  | `indexes_to_counts(accessible_indexes)`  | `prettyIndexNotation(accessible_indexes)` | rename accessible_indexes AS "accessible indexes" totalAccess AS "accessible indexes counts"</searchString>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>User capabilities</title>
+        <searchPostProcess>| fields capabilities | mvexpand capabilities | rename capabilities AS capability</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>capability_details?form.capability=$row.capability$</link>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <chart>
+        <title>User activity (last 7 days)</title>
+        <searchString>index=_internal user="$user$" (sourcetype=splunk_web_access OR sourcetype=splunkd_access) | timechart span=1h count by sourcetype</searchString>
+        <earliestTime>-7d@h</earliestTime>
+        <latestTime>now</latestTime>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisY2.enabled">false</option>
+        <option name="charting.axisY2.scale">inherit</option>
+      </chart>
+    </panel>
+    <panel>
+      <table>
+        <title>User roles</title>
+        <searchPostProcess>| fields roles | mvexpand roles | rename roles AS role</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="count">10</option>
+        <drilldown>
+          <link>role_details?form.role=$row.role$</link>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <html>
+      <h2>User to index mapping</h2>
+      <div id="sankeySearch" class="splunk-manager" data-require="splunkjs/mvc/searchmanager" data-options="{                             &quot;search&quot;: {     &quot;type&quot;: &quot;token_safe&quot;,     &quot;value&quot;: &quot;| `compute_indexes_to_roles_and_users` | fields - roles, role_count, user_count | makemv delim=\&quot;, \&quot; users | mvexpand users | rename users AS user | eval count=1 | where user=\&quot;$$user$$\&quot;&quot;    },                              &quot;earliest_time&quot;: &quot;-7d&quot;,                             &quot;status_buckets&quot;: 0,                             &quot;cancelOnUnload&quot;: true,                             &quot;auto_cancel&quot;: 90,                             &quot;preview&quot;: true                        }"/>
+      <div id="sankeyChart" class="splunk-view" data-require="app/data_governance/components/sankeydiagram/sankeydiagram" data-options="{                             &quot;managerid&quot;: &quot;sankeySearch&quot;,                             &quot;sourceField&quot;: &quot;user&quot;,                             &quot;destinationField&quot;: &quot;index&quot;,                             &quot;valueField&quot;: &quot;count&quot;      }"/>
+
+    </html>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>User executed searches (last 24 hours)</title>
+        <searchString>`compute_user_executed_searches($user$)`</searchString>
+        <earliestTime>-24h@h</earliestTime>
+        <latestTime>now</latestTime>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+</form>

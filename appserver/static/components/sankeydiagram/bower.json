@@ -1,0 +1,12 @@
+{
+    "name": "sankeydiagram",
+    "description": "based on d3 example by http://bost.ocks.org/mike/sankey/",
+    "authors": [ "vs@splunk.com" ],
+    "version": "1.0.0",
+    "main": "sankeydiagram.js",
+    "ignore": [],
+    "dependencies": {
+        "d3": "3.3.x"
+    },
+    "devDependencies": {}
+}

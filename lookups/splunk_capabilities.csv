@@ -1,0 +1,46 @@
+capability_name,capability_description
+accelerate_datamodel,Required to accelerate a datamodel.
+accelerate_search,Required to save an accelerated search. All users have this capability by default
+admin_all_objects,"A role with this capability has access to objects in the system (user objects, search jobs, etc.). This bypasses any ACL restrictions (similar to root access in a *nix environment). We check this capability when accessing manager pages and objects."
+change_authentication,Required to change authentication settings through the various authentication endpoints. Also controls whether authentication can be reloaded
+change_own_password,Self explanatory. Some auth systems prefer to have passwords be immutable for some users.
+delete_by_keyword,Required to use the 'delete' search operator. Note that this does not actually delete the raw data on disk. Delete merely masks the data (via the index) from showing up in search results.
+edit_deployment_client,Self explanatory. The deployment client admin endpoint requires this cap for edit.
+list_deployment_client,Self explanatory.
+edit_deployment_server,Self explanatory. The deployment server admin endpoint requires this cap for edit.
+list_deployment_server,Self explanatory.
+edit_dist_peer,Required to add and edit peers for distributed search.
+edit_forwarders,"Required to edit settings for forwarding data. Used by TCP and Syslog output admin handlers. Includes settings for SSL, backoff schemes, etc."
+edit_httpauths,Required to edit and end user sessions through the httpauth-tokens endpoint.
+edit_input_defaults,Required to change the default hostname for input data in the server settings endpoint.
+edit_monitor,Required to add inputs and edit settings for monitoring files. Used by the standard inputs endpoint as well as the one-shot input endpoint.
+edit_roles,Required to edit roles as well as change the mappings from users to roles. Used by both the users and roles endpoint.
+edit_scripted,Required to create and edit scripted inputs.
+edit_search_server,"Required to edit general distributed search settings like timeouts, heartbeats, and blacklists"
+edit_server,"Required to edit general server settings such as the server name, log levels, etc."
+edit_splunktcp,Required to change settings for receiving TCP input from another Splunk instance.
+edit_splunktcp_ssl,Required to list or edit any SSL specific settings for Splunk TCP input.
+edit_tcp,Required to change settings for receiving general TCP inputs.
+edit_udp,Required to change settings for UDP inputs.
+edit_user,"Required to create, edit, or remove users. Note that Splunk users may edit certain aspects of their information without this capability. Also required to manage certificates for distributed search."
+edit_view_html,"Required to create, edit, or otherwise modify HTML-based views."
+edit_web_settings,Required to change the settings for web.conf through the system settings endpoint.
+get_diag,Required to use the /streams/diag endpoint to get remote diag from an instance
+get_metadata,Required to use the 'metadata' search processor.
+get_typeahead,Required for typeahead. This includes the typeahead endpoint and the 'typeahead' search processor.
+input_file,Required for inputcsv (except for dispatch=t mode) and inputlookup
+indexes_edit,Required to change any index settings like file size and memory limits.
+license_tab,Required to access and change the license.
+list_forwarders,Required to show settings for forwarding data. Used by TCP and Syslog output admin handlers.
+list_httpauths,Required to list user sessions through the httpauth-tokens endpoint.
+list_inputs,"Required to view the list of various inputs. This includes input from files, TCP, UDP, Scripts, etc."
+output_file,Required for outputcsv (except for dispatch=t mode) and outputlookup.
+request_remote_tok,Required to get a remote authentication token. Used for distributing search to old 4.0.x Splunk instances. Also used for some distributed peer management and bundle replication.
+rest_apps_management,Required to edit settings for entries and categories in the python remote apps handler. See restmap.conf for more information.
+rest_apps_view,Required to list various properties in the python remote apps handler. See restmap.conf for more info
+rest_properties_get,Required to get information from the services/properties endpoint.
+rest_properties_set,Required to edit the services/properties endpoint.
+restart_splunkd,Required to restart Splunk through the server control handler.
+rtsearch,Required to run a realtime search.
+run_debug_commands,Required to run debugging commands like 'summarize'.
+schedule_search,Required to schedule saved searches.

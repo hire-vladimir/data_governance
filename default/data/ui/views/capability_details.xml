@@ -1,0 +1,81 @@
+<form>
+  <label>Capability Detail</label>
+  <description>That are defined on this Splunk instance</description>
+  <fieldset submitButton="true" autoRun="true">
+    <input type="dropdown" token="capability">
+      <label>Enter capability:</label>
+      <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="capability" fieldForValue="capability">| rest splunk_server=local /services/authorization/capabilities | fields capabilities | mvexpand capabilities | rename capabilities AS capability | sort capability</populatingSearch>
+      <default>accelerate_datamodel</default>
+    </input>
+  </fieldset>
+  <searchTemplate>| rest splunk_server=local /services/authorization/capabilities | fields capabilities | mvexpand capabilities | rename capabilities AS capability | lookup splunk_capability_details capability_name AS capability
+
+| `compute_capabilities_to_users`
+| `compute_capabilities_to_roles`
+    | where capability="$capability$"</searchTemplate>
+  <row>
+    <panel>
+      <single>
+        <title>Users with capability</title>
+        <searchPostProcess>| fields user_count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Roles with capability</title>
+        <searchPostProcess>| fields role_count</searchPostProcess>
+        <earliestTime>0</earliestTime>
+        <latestTime/>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Capability description</title>
+        <searchPostProcess>|  fields capability, capability_description | rename capability_description AS description</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Users with capability</title>
+        <searchPostProcess>| fields users | makemv delim=", " users | mvexpand users | rename users AS user</searchPostProcess>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <drilldown>
+          <link>user_details?form.user=$row.user$</link>
+        </drilldown>
+        <option name="count">10</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Roles with capability</title>
+        <searchString>| rest splunk_server=local /services/authorization/roles | rename title AS role | fields role, capabilities, imported_capabilities, imported_roles | eval all_capabilities=mvappend(capabilities, "", imported_capabilities) | mvexpand all_capabilities   | where all_capabilities="$capability$"  | eval imported=if(isnotnull(mvfind(imported_capabilities, "^$capability$$")), "yes", "no") | fields + role, imported</searchString>
+        <earliestTime>$earliest$</earliestTime>
+        <latestTime>$latest$</latestTime>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <drilldown>
+          <link>role_details?form.role=$row.role$</link>
+        </drilldown>
+        <option name="count">10</option>
+      </table>
+    </panel>
+  </row>
+</form>
