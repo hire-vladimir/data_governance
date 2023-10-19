@@ -1,48 +1,54 @@
-<form script="autodiscover.js">
+<form version="1.1" script="autodiscover.js">
   <label>App Detail</label>
   <description>That are defined on this Splunk instance</description>
   <fieldset autoRun="true">
     <input type="dropdown" token="app">
       <label>Select app:</label>
       <default>splunk_governance</default>
-      <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="label" fieldForValue="app">| rest splunk_server=local /services/apps/local | rename title AS app | fields app, label, disabled, visible | sort label</populatingSearch>
+      <search>
+        <query>| rest splunk_server=local /services/apps/local | rename title AS app | fields app, label, disabled, visible | sort label</query>
+      </search>
+      <fieldForLabel>label</fieldForLabel>
+      <fieldForValue>app</fieldForValue>
     </input>
   </fieldset>
-  <searchTemplate>| `compute_apps_to_users_and_roles` | where app="$app$"</searchTemplate>
+  <search id="v_base">
+    <query>| `compute_apps_to_users_and_roles` | where app="$app$"</query>
+  </search>
   <row>
     <panel>
       <single>
         <title>Users with read access</title>
-        <searchPostProcess>| fields user_read_count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| fields user_read_count</query>
+        </search>
         <option name="drilldown">none</option>
       </single>
     </panel>
     <panel>
       <single>
         <title>Users with write access</title>
-        <searchPostProcess>| fields user_write_count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| fields user_write_count</query>
+        </search>
         <option name="drilldown">none</option>
       </single>
     </panel>
     <panel>
       <single>
         <title>Roles with read access</title>
-        <searchPostProcess>| fields role_read_count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| fields role_read_count</query>
+        </search>
         <option name="drilldown">none</option>
       </single>
     </panel>
     <panel>
       <single>
         <title>Roles with write access</title>
-        <searchPostProcess>| fields role_write_count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| fields role_write_count</query>
+        </search>
         <option name="drilldown">none</option>
       </single>
     </panel>
@@ -51,9 +57,9 @@
     <panel>
       <table>
         <title>App details</title>
-        <searchString>| rest splunk_server=local /services/apps/local/$app$ |  fields label, title, details, eai:acl.sharing, eai:acl.perms.read, eai:acl.perms.write, version, visible | rename eai:acl.perms.read AS read, eai:acl.perms.write AS modify eai:acl.sharing AS "sharing context" | `prettybool(visible)` | `prettymv(read)` | `prettymv(modify)` | `prettyRoleNotation(read)` | `prettyRoleNotation(modify)`  | rename read AS "read roles" modify AS "write roles"</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| rest splunk_server=local /services/apps/local/$app$ |  fields label, title, details, eai:acl.sharing, eai:acl.perms.read, eai:acl.perms.write, version, visible | rename eai:acl.perms.read AS read, eai:acl.perms.write AS modify eai:acl.sharing AS "sharing context" | `prettybool(visible)` | `prettymv(read)` | `prettymv(modify)` | `prettyRoleNotation(read)` | `prettyRoleNotation(modify)`  | rename read AS "read roles" modify AS "write roles"</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>
@@ -66,7 +72,9 @@
     <panel>
       <table>
         <title>Users with read access</title>
-        <searchPostProcess>| fields users_read | rename users_read AS users | makemv delim=", " users| mvexpand users | sort users</searchPostProcess>
+        <search base="v_base">
+          <query>| fields users_read | rename users_read AS users | makemv delim=", " users| mvexpand users | sort users</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
         <option name="dataOverlayMode">none</option>
@@ -80,7 +88,9 @@
     <panel>
       <table>
         <title>Users with write access</title>
-        <searchPostProcess>| fields users_write | rename users_write AS users | makemv delim=", " users| mvexpand users | sort users</searchPostProcess>
+        <search base="v_base">
+          <query>| fields users_write | rename users_write AS users | makemv delim=", " users| mvexpand users | sort users</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
         <option name="dataOverlayMode">none</option>
@@ -94,7 +104,9 @@
     <panel>
       <table>
         <title>Roles with read access</title>
-        <searchPostProcess>| fields roles_read | rename roles_read AS roles | makemv delim=", " roles| mvexpand roles | sort roles</searchPostProcess>
+        <search base="v_base">
+          <query>| fields roles_read | rename roles_read AS roles | makemv delim=", " roles| mvexpand roles | sort roles</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
         <option name="dataOverlayMode">none</option>
@@ -108,7 +120,9 @@
     <panel>
       <table>
         <title>Roles with write access</title>
-        <searchPostProcess>| fields roles_write | rename roles_write AS roles | makemv delim=", " roles| mvexpand roles | sort roles</searchPostProcess>
+        <search base="v_base">
+          <query>| fields roles_write | rename roles_write AS roles | makemv delim=", " roles| mvexpand roles | sort roles</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
         <option name="dataOverlayMode">none</option>
@@ -124,9 +138,11 @@
     <panel>
       <chart>
         <title>Dashboard access activity (last 7 days)</title>
-        <searchString>index=_internal source=*web_access.log* /app/$app$/ uri="*/app/$app$/*"  | rex "GET /[^/]+/app/(?&lt;app_view&gt;[^/ ?]+/[^/ ?]+) " | search app_view=* | timechart count by app_view</searchString>
-        <earliestTime>-7d@h</earliestTime>
-        <latestTime>now</latestTime>
+        <search>
+          <query>index=_internal source=*web_access.log* /app/$app$/ uri="*/app/$app$/*"  | rex "GET /[^/]+/app/(?&lt;app_view&gt;[^/ ?]+/[^/ ?]+) " | search app_view=* | timechart count by app_view</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -150,9 +166,11 @@
     <panel>
       <chart>
         <title>User access activity (last 7 days)</title>
-        <searchString>index=_internal source=*web_access.log* /app/$app$/ uri="*/app/$app$/*"  | rex "GET /[^/]+/app/(?&lt;app_view&gt;[^/ ?]+/[^/ ?]+) " | search app_view=* | timechart count by user</searchString>
-        <earliestTime>-7d@h</earliestTime>
-        <latestTime>now</latestTime>
+        <search>
+          <query>index=_internal source=*web_access.log* /app/$app$/ uri="*/app/$app$/*"  | rex "GET /[^/]+/app/(?&lt;app_view&gt;[^/ ?]+/[^/ ?]+) " | search app_view=* | timechart count by user</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -178,9 +196,10 @@
     <panel>
       <table>
         <title>App saved searches</title>
-        <searchString>| rest /servicesNS/-/-/saved/searches/ | where 'eai:acl.app'="$app$" | `prettyObjectDetails`</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| rest /servicesNS/-/-/saved/searches/ | where 'eai:acl.app'="$app$" | `prettyObjectDetails`</query>
+          <earliest>0</earliest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
         <option name="dataOverlayMode">none</option>
@@ -196,9 +215,10 @@
     <panel>
       <table>
         <title>App dashboards</title>
-        <searchString>| rest /servicesNS/-/-/data/ui/views | where 'eai:acl.app'="$app$"  | `prettyObjectDetails`</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| rest /servicesNS/-/-/data/ui/views | where 'eai:acl.app'="$app$"  | `prettyObjectDetails`</query>
+          <earliest>0</earliest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
         <option name="dataOverlayMode">none</option>
@@ -214,9 +234,10 @@
     <panel>
       <table>
         <title>App lookup tables</title>
-        <searchString>| rest /servicesNS/-/-/data/lookup-table-files | where 'eai:acl.app'="$app$" | `prettyObjectDetails`</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| rest /servicesNS/-/-/data/lookup-table-files | where 'eai:acl.app'="$app$" | `prettyObjectDetails`</query>
+          <earliest>0</earliest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
         <option name="dataOverlayMode">none</option>

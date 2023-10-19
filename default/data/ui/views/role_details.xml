@@ -1,25 +1,35 @@
-<form script="autodiscover.js">
+<form version="1.1" script="autodiscover.js">
   <label>Role Detail</label>
   <description/>
   <fieldset submitButton="true" autoRun="true">
     <input type="dropdown" token="role">
       <label>Enter role:</label>
-      <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="role" fieldForValue="role">| rest splunk_server=local /services/authorization/roles | fields title | rename title AS role | sort role</populatingSearch>
+      <fieldForLabel>role</fieldForLabel>
+        <fieldForValue>role</fieldForValue>
+        <search>
+          <query>| rest splunk_server=local /services/authorization/roles | fields title | rename title AS role | sort role</query>
+        </search>
       <default>admin</default>
     </input>
   </fieldset>
-  <searchTemplate>| rest splunk_server=local /services/authorization/roles/$role$ |  eval capabilities=mvcount(mvappend(capabilities, imported_capabilities))  | `splunk_default_vs_custom_roles`  | fillnull value="" 
+  <search id="v_base">
+  <query>| rest splunk_server=local /services/authorization/roles/$role$ |  eval capabilities=mvcount(mvappend(capabilities, imported_capabilities))  | `splunk_default_vs_custom_roles`  | fillnull value="" 
 | rename title AS role   | `prettymv(imported_roles)` | `prettymv(srchIndexesAllowed)` | `prettymv(srchIndexesDefault)`   
 | `indexes_to_counts(srchIndexesAllowed)` | `prettyIndexNotation(accessible_indexes)` | `prettyIndexNotation(srchIndexesDefault)` 
 
 | fields role, type, capabilities, imported_roles, srchIndexesDefault, accessible_indexes, totalAccess | rename imported_roles AS inherited srchIndexesDefault AS "default searchable indexes", srchIndexesAllowed AS "accessible indexes" totalAccess AS "accessible index count"  
 
-    | join type=outer role [| rest splunk_server=local /services/authentication/users | mvexpand roles | stats count AS "user count" by roles | rename roles AS role] | fillnull value=0 "user count" | sort - "user count"</searchTemplate>
+    | join type=outer role [| rest splunk_server=local /services/authentication/users | mvexpand roles | stats count AS "user count" by roles | rename roles AS role] | fillnull value=0 "user count" | sort - "user count"
+    </query>
+  </search>
+
   <row>
     <panel>
       <table>
         <title>Role details</title>
-        <searchPostProcess>| fields role, type, inherited, capabilities, "user count" | rename inherited AS "inherited from"</searchPostProcess>
+        <search base="v_base">
+          <query>| fields role, type, inherited, capabilities, "user count" | rename inherited AS "inherited from"</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>
@@ -32,7 +42,9 @@
     <panel>
       <table>
         <title>Role data access</title>
-        <searchPostProcess>| rename accessible_indexes AS "accessible indexes" | fields role, "default searchable indexes", "accessible indexes", "accessible index count"</searchPostProcess>
+        <search base="v_base">
+          <query>| rename accessible_indexes AS "accessible indexes" | fields role, "default searchable indexes", "accessible indexes", "accessible index count"</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>
@@ -45,9 +57,10 @@
     <panel>
       <table>
         <title>Role capabilities</title>
-        <searchString>| rest splunk_server=local /services/authorization/roles/admin | eval capabilities=mvappend(capabilities, imported_capabilities) | mvexpand capabilities | rename capabilities AS capability | eval imported=if(isnotnull(mvfind(imported_capabilities, "^".capability."$")), "yes", "no") | fields + capability, imported | sort capability</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| rest splunk_server=local /services/authorization/roles/admin | eval capabilities=mvappend(capabilities, imported_capabilities) | mvexpand capabilities | rename capabilities AS capability | eval imported=if(isnotnull(mvfind(imported_capabilities, "^".capability."$")), "yes", "no") | fields + capability, imported | sort capability</query>
+          <earliest>0</earliest>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -79,9 +92,10 @@
     <panel>
       <table>
         <title>Role users</title>
-        <searchString>| rest splunk_server=local /services/authentication/users | fields title, roles | rename title AS user roles AS role | mvexpand role | where role="$role$" | fields - role</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| rest splunk_server=local /services/authentication/users | fields title, roles | rename title AS user roles AS role | mvexpand role | where role="$role$" | fields - role</query>
+          <earliest>0</earliest>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -113,9 +127,10 @@
     <panel>
       <table>
         <title>Role indexes</title>
-        <searchString>| `compute_indexes_to_roles_and_users` | fields - users, role_count, user_count | makemv delim=", " roles | mvexpand roles | rename roles AS role | where role="$role$" | fields - role</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| `compute_indexes_to_roles_and_users` | fields - users, role_count, user_count | makemv delim=", " roles | mvexpand roles | rename roles AS role | where role="$role$" | fields - role</query>
+          <earliest>0</earliest>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>

@@ -1,26 +1,29 @@
-<dashboard>
+<dashboard version="1.1">
   <label>Capability Overview</label>
   <description>That are defined on this Splunk instance</description>
-  <searchTemplate>| rest splunk_server=local /services/authorization/capabilities | fields capabilities | mvexpand capabilities | rename capabilities AS capability | lookup splunk_capability_details capability_name AS capability
+  <search id="v_base">
+    <query>| rest splunk_server=local /services/authorization/capabilities | fields capabilities | mvexpand capabilities | rename capabilities AS capability | lookup splunk_capability_details capability_name AS capability
+            | `compute_capabilities_to_users`
+            | `compute_capabilities_to_roles`
+    </query>
+  </search>
 
-| `compute_capabilities_to_users`
-    | `compute_capabilities_to_roles`</searchTemplate>
   <row>
     <panel>
       <single>
         <title>Capability count</title>
-        <searchPostProcess>| stats count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| stats count</query>
+        </search>
         <option name="drilldown">none</option>
       </single>
     </panel>
     <panel>
       <single>
         <title>Unassigned capabilities</title>
-        <searchPostProcess>| where 'role_count'=0 | stats count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| where 'role_count'=0 | stats count</query>
+        </search>
         <option name="drilldown">all</option>
       </single>
     </panel>
@@ -29,7 +32,9 @@
     <panel>
       <table>
         <title>Capability list</title>
-        <searchPostProcess>| fields capability, capability_description, role_count, user_count | rename capability_description AS description role_count AS "#roles" user_count AS "#users"</searchPostProcess>
+        <search base="v_base">
+          <query>| fields capability, capability_description, role_count, user_count | rename capability_description AS description role_count AS "#roles" user_count AS "#users"</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>

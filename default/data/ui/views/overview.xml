@@ -1,11 +1,11 @@
-<form>
+<form version="1.1">
   <label>Overview</label>
   <fieldset submitButton="false">
     <input type="time" token="timerange">
       <label>Time range:</label>
       <default>
-        <earliestTime>-7d@h</earliestTime>
-        <latestTime>now</latestTime>
+        <earliest>-7d@h</earliest>
+        <latest>now</latest>
       </default>
     </input>
   </fieldset>
@@ -41,9 +41,11 @@ While every organization will have different governance policies and goals, this
     <panel>
       <chart>
         <title>Access activity</title>
-        <searchString>index=_internal sourcetype=splunkd_access OR sourcetype=splunkd_web_access | eval action=case(like(status,"2%") OR like(status,"3%"), "allowed", like(status, "4%"), "blocked") | fillnull value="unknown" action | timechart count by action</searchString>
-        <earliestTime>$timerange.earliest$</earliestTime>
-        <latestTime>$timerange.latest$</latestTime>
+        <search>
+          <query>index=_internal sourcetype=splunkd_access OR sourcetype=splunkd_web_access | eval action=case(like(status,"2%") OR like(status,"3%"), "allowed", like(status, "4%"), "blocked") | fillnull value="unknown" action | timechart count by action</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -69,9 +71,11 @@ While every organization will have different governance policies and goals, this
     <panel>
       <chart>
         <title>Access control trend</title>
-        <searchString>| `get_environment_detail_counts` | timechart latest(users) AS Users, latest(roles) AS roles</searchString>
-        <earliestTime>$timerange.earliest$</earliestTime>
-        <latestTime>$timerange.latest$</latestTime>
+        <search>
+          <query>| `get_environment_detail_counts` | timechart latest(users) AS Users, latest(roles) AS roles</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -95,9 +99,11 @@ While every organization will have different governance policies and goals, this
     <panel>
       <chart>
         <title>Stored data trend</title>
-        <searchString>| `get_environment_detail_counts` | timechart latest(sources) AS sources, latest(sourcetypes) AS sourcetypes, latest(hosts) AS hosts, latest(indexes) as indexes</searchString>
-        <earliestTime>$timerange.earliest$</earliestTime>
-        <latestTime>$timerange.latest$</latestTime>
+        <search>
+          <query>| `get_environment_detail_counts` | timechart latest(sources) AS sources, latest(sourcetypes) AS sourcetypes, latest(hosts) AS hosts, latest(indexes) as indexes</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -121,9 +127,11 @@ While every organization will have different governance policies and goals, this
     <panel>
       <chart>
         <title>App trend</title>
-        <searchString>| `get_environment_detail_counts` | timechart latest(apps) AS apps, latest(dashboards) AS dashboards</searchString>
-        <earliestTime>$timerange.earliest$</earliestTime>
-        <latestTime>$timerange.latest$</latestTime>
+        <search>
+          <query>| `get_environment_detail_counts` | timechart latest(apps) AS apps, latest(dashboards) AS dashboards</query>
+          <earliest>$timerange.earliest$</earliest>
+          <latest>$timerange.latest$</latest>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -149,9 +157,11 @@ While every organization will have different governance policies and goals, this
     <panel>
       <table>
         <title>Top searches (last 24 hours)</title>
-        <searchString>`compute_user_executed_searches(*)`</searchString>
-        <earliestTime>-24h@h</earliestTime>
-        <latestTime>now</latestTime>
+        <search>
+          <query>`compute_user_executed_searches(*)`</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>

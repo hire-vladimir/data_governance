@@ -1,13 +1,15 @@
-<dashboard>
+<dashboard version="1.1">
   <label>User Audit - Splunk accounts</label>
   <description>Dashboard concentrates on internal Splunk based accounts that are defined on this Splunk instance</description>
   <row>
     <panel>
       <table>
         <title>Account modifications (last 7 days)</title>
-        <searchString>index=_audit action=edit_user (operation=create OR operation=remove) | table _time, operation, user, object, info | rename info AS status, user AS src_user, object AS dest_user</searchString>
-        <earliestTime>-7d@h</earliestTime>
-        <latestTime>now</latestTime>
+        <search>
+          <query>index=_audit action=edit_user (operation=create OR operation=remove) | table _time, operation, user, object, info | rename info AS status, user AS src_user, object AS dest_user</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>
@@ -17,9 +19,11 @@
     <panel>
       <table>
         <title>Role modifications (last 7 days)</title>
-        <searchString>index=_audit action=edit_roles (operation=create OR operation=remove) | table _time, operation, user, object, info | rename info AS status, user AS src_user, object AS role</searchString>
-        <earliestTime>-7d@h</earliestTime>
-        <latestTime>now</latestTime>
+        <search>
+          <query>index=_audit action=edit_roles (operation=create OR operation=remove) | table _time, operation, user, object, info | rename info AS status, user AS src_user, object AS role</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>
@@ -31,9 +35,10 @@
     <panel>
       <table>
         <title>Internal users by password age</title>
-        <searchString>index=_audit action="password change" OR (action="edit_user" AND operation="create") | eval user=if(operation=="create",object,user) | stats latest(_time) AS lastpwchange by user | eval lastpwd_day_ago=round((now()-lastpwchange)/60/60/24, 1) | convert ctime(lastpwchange) | sort - lastpwd_day_ago</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>index=_audit action="password change" OR (action="edit_user" AND operation="create") | eval user=if(operation=="create",object,user) | stats latest(_time) AS lastpwchange by user | eval lastpwd_day_ago=round((now()-lastpwchange)/60/60/24, 1) | convert ctime(lastpwchange) | sort - lastpwd_day_ago</query>
+          <earliest>0</earliest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>

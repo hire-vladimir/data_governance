@@ -1,24 +1,28 @@
-<dashboard>
+<dashboard version="1.1">
   <label>About</label>
   <description/>
-  <searchTemplate>| `compute_apps_to_users_and_roles` | where app="data_governance"</searchTemplate>
+  <search id="v_base">
+    <query>| `compute_apps_to_users_and_roles` | where app="data_governance"</query>
+  </search>
   <row>
     <panel>
       <single>
         <title>Version</title>
-        <searchString>| rest splunk_server=local /services/apps/local/data_governance | fields version</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| rest splunk_server=local /services/apps/local/data_governance | fields version</query>
+          <earliest>0</earliest>
+        </search>
         <option name="drilldown">none</option>
       </single>
     </panel>
     <panel>
       <single>
         <title>Author</title>
-        <searchString>|localop | stats count | eval authorContact="hire.vladimir@gmail.com" | fields authorContact</searchString>
+        <search>
+          <query>|localop | stats count | eval authorContact="hire.vladimir@gmail.com" | fields authorContact</query>
+        </search>
         <option name="drilldown">all</option>
         <option name="underLabel">email</option>
-        <option name="linkView">search</option>
         <drilldown>
           <link>mailto:hire.vladimir@gmail.com</link>
         </drilldown>
@@ -29,30 +33,32 @@
     <panel>
       <single>
         <title>Did you know?</title>
-        <searchPostProcess>| fields user_read_count</searchPostProcess>
+        <search base="v_base">
+          <query>| fields user_read_count</query>
+        </search>
         <option name="drilldown">none</option>
-        <option name="linkView">search</option>
         <option name="underLabel">Users with read access</option>
       </single>
       <single>
-        <searchPostProcess>| fields user_write_count</searchPostProcess>
+       <search base="v_base">
+          <query>| fields user_write_count</query>
+        </search>
         <option name="drilldown">none</option>
         <option name="underLabel">Users with write access</option>
-        <option name="linkView">search</option>
       </single>
       <single>
         <title/>
-        <searchPostProcess>| fields role_read_count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| fields role_read_count</query>
+        </search>
         <option name="drilldown">none</option>
         <option name="underLabel">Roles with read access</option>
       </single>
       <single>
         <title/>
-        <searchPostProcess>| fields role_write_count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| fields role_write_count</query>
+        </search>
         <option name="drilldown">none</option>
         <option name="underLabel">Roles with write access</option>
       </single>
@@ -62,9 +68,11 @@
     <panel>
       <table>
         <title>Description</title>
-        <searchString>| rest splunk_server=local /services/apps/local/data_governance | fields label, description | rename label AS name</searchString>
-        <earliestTime>$earliest$</earliestTime>
-        <latestTime>$latest$</latestTime>
+        <search>
+          <query>| rest splunk_server=local /services/apps/local/data_governance | fields label, description | rename label AS name</query>
+          <earliest>$earliest$</earliest>
+          <latest>$latest$</latest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>
@@ -85,9 +93,10 @@
     <panel>
       <table>
         <title>Special thanks (alphabetical)</title>
-        <searchString>| localop | stats count | fields - count | eval specialThanks=`special_names` | makemv delim=", " specialThanks | mvexpand specialThanks | sort specialThanks | mvcombine specialThanks | `prettymv(specialThanks)` | rename specialThanks AS "Names"</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| localop | stats count | fields - count | eval specialThanks=`special_names` | makemv delim=", " specialThanks | mvexpand specialThanks | sort specialThanks | mvcombine specialThanks | `prettymv(specialThanks)` | rename specialThanks AS "Names"</query>
+          <earliest>0</earliest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>

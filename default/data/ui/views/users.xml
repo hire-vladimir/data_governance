@@ -1,33 +1,37 @@
-<form script="autodiscover.js">
+<form version="1.1" script="autodiscover.js">
   <label>User Overview</label>
   <description>That are defined on this Splunk instance</description>
-  <searchTemplate>| rest splunk_server=local /services/authentication/users</searchTemplate>
+  <search id="v_base">
+    <query>| rest splunk_server=local /services/authentication/users</query>
+  </search>
+
   <row>
     <panel>
       <single>
         <title>Total number of users</title>
-        <searchPostProcess>| stats count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime>now</latestTime>
+        <search base="v_base">
+          <query>| stats count</query>
+        </search>
         <option name="drilldown">all</option>
       </single>
     </panel>
     <panel>
       <single>
         <title>Total privileged users</title>
-        <searchPostProcess>| search roles=admin | stats count</searchPostProcess>
-        <option name="linkView">search</option>
+        <search base="v_base">
+          <query>| search roles=admin | stats count</query>
+        </search>
         <option name="drilldown">all</option>
       </single>
     </panel>
     <panel>
       <single>
         <title>Users that can delete</title>
-        <searchPostProcess>| where capabilities="delete_by_keyword" | stats count | rangemap field=count high=1-100 default=low</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime>now</latestTime>
-        <option name="linkView">search</option>
-        <option name="classField">range</option>
+        <search base="v_base">
+          <query>| where capabilities="delete_by_keyword" | stats count | rangemap field=count high=1-100 default=low</query>
+        </search>
+        <earliest>0</earliest>
+        <latest>now</latest>
         <option name="drilldown">all</option>
       </single>
     </panel>
@@ -36,7 +40,9 @@
     <panel>
       <table>
         <title>User list</title>
-        <searchPostProcess>|  rest splunk_server=local /services/authentication/users |  eval cc=mvcount(capabilities) | eval rc=mvcount(roles) | `prettymv(roles)` | fields title, realname, email, type, roles, rc, cc | rename title AS username realname AS name cc AS "capability count" rc AS "role count"  | join username [`compute_user_to_indexes`] | `indexes_to_counts(accessible_indexes)` | `prettyIndexNotation(accessible_indexes)`   | sort - totalAccess  | rename accessible_indexes AS "accessible indexes" totalAccess AS "accessible indexes count"</searchPostProcess>
+        <search>
+          <query>|  rest splunk_server=local /services/authentication/users |  eval cc=mvcount(capabilities) | eval rc=mvcount(roles) | `prettymv(roles)` | fields title, realname, email, type, roles, rc, cc | rename title AS username realname AS name cc AS "capability count" rc AS "role count"  | join username [`compute_user_to_indexes`] | `indexes_to_counts(accessible_indexes)` | `prettyIndexNotation(accessible_indexes)`   | sort - totalAccess  | rename accessible_indexes AS "accessible indexes" totalAccess AS "accessible indexes count"</query>
+        </search>
         <option name="list.drilldown">full</option>
         <option name="list.wrap">1</option>
         <option name="maxLines">5</option>
@@ -59,7 +65,9 @@
     <panel>
       <chart>
         <title>Users by authentication type</title>
-        <searchPostProcess>|  stats count by type</searchPostProcess>
+        <search base="v_base">
+          <query>| stats count by type</query>
+        </search>
         <option name="charting.axisTitleX.visibility">visible</option>
         <option name="charting.axisTitleY.visibility">visible</option>
         <option name="charting.axisX.scale">linear</option>
@@ -83,7 +91,9 @@
     <panel>
       <chart>
         <title>Users by role</title>
-        <searchPostProcess>| stats count by roles</searchPostProcess>
+        <search base="v_base">
+          <query>| stats count by roles</query>
+        </search>
         <option name="charting.axisTitleX.visibility">visible</option>
         <option name="charting.axisTitleY.visibility">visible</option>
         <option name="charting.axisX.scale">linear</option>
@@ -110,7 +120,11 @@
       <input type="multiselect" token="sankey_u2r_user" searchWhenChanged="true">
         <label>Users:</label>
         <choice value="*">All</choice>
-        <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="user" fieldForValue="user">| rest splunk_server=local /services/authentication/users | fields title | rename title AS user | sort user</populatingSearch>
+        <fieldForLabel>user</fieldForLabel>
+        <fieldForValue>user</fieldForValue>
+        <search>
+          <query>| rest splunk_server=local /services/authentication/users | fields title | rename title AS user | sort user</query>
+        </search>
         <default>*</default>
         <prefix>(</prefix>
         <suffix>)</suffix>
@@ -121,7 +135,11 @@
       <input type="multiselect" token="sankey_u2r_role" searchWhenChanged="true">
         <label>Roles:</label>
         <choice value="*">All</choice>
-        <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="role" fieldForValue="role">| rest splunk_server=local /services/authorization/roles | fields title | rename title AS role | sort role</populatingSearch>
+        <fieldForLabel>role</fieldForLabel>
+        <fieldForValue>role</fieldForValue>
+        <search>
+          <query>| rest splunk_server=local /services/authorization/roles | fields title | rename title AS role | sort role</query>
+        </search>
         <default>*</default>
         <prefix>(</prefix>
         <suffix>)</suffix>

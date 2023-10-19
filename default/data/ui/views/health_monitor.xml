@@ -1,4 +1,4 @@
-<dashboard>
+<dashboard version="1.1">
   <label>Health Monitor</label>
   
   <row><panel><html><h2>THIS IS A MOCK SCREEN, FUTURE VERSION IDEAS</h2>Ideas? Suggestions? <a href="mailto:hire.vladimir@gmail.com">hire.vladimir@gmail.com</a> OR visit <a href="https://github.com/hire-vladimir/data_governance">https://github.com/hire-vladimir/data_governance</a></html></panel></row>

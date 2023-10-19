@@ -1,19 +1,28 @@
-<form script="autodiscover.js">
+<form version="1.1" script="autodiscover.js">
   <label>User Detail</label>
   <description>That are defined on this Splunk instance</description>
   <fieldset autoRun="true">
     <input type="dropdown" token="user">
       <label>Enter username:</label>
       <default>admin</default>
-      <populatingSearch fieldForLabel="title" fieldForValue="title">| rest splunk_server=local /services/authentication/users |  fields title | sort title</populatingSearch>
+      <fieldForLabel>title</fieldForLabel>
+        <fieldForValue>title</fieldForValue>
+        <search>
+          <query>| rest splunk_server=local /services/authentication/users | fields title | sort title</query>
+        </search>
     </input>
   </fieldset>
-  <searchTemplate>| rest splunk_server=local /services/authentication/users/$user$</searchTemplate>
+  <search id="v_base">
+    <query>| rest splunk_server=local /services/authentication/users/$user$</query>
+  </search>
+
   <row>
     <panel>
       <table>
         <title>User details</title>
-        <searchPostProcess>| eval n=mvcount(capabilities) | fields title, realname, email, roles, n, defaultApp, tz, type | rename title AS username n AS "number of capabilities", defaultApp AS "default app" | eval tz=if(tz=="","system default",tz)</searchPostProcess>
+        <search base="v_base">
+          <query>| eval n=mvcount(capabilities) | fields title, realname, email, roles, n, defaultApp, tz, type | rename title AS username n AS "number of capabilities", defaultApp AS "default app" | eval tz=if(tz=="","system default",tz)</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>
@@ -26,9 +35,10 @@
     <panel>
       <table>
         <title>User data access</title>
-        <searchString>| localop | stats count | eval username="$user$" | table username | join username [`compute_user_to_indexes`]  | `indexes_to_counts(accessible_indexes)`  | `prettyIndexNotation(accessible_indexes)` | rename accessible_indexes AS "accessible indexes" totalAccess AS "accessible indexes counts"</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| localop | stats count | eval username="$user$" | table username | join username [`compute_user_to_indexes`]  | `indexes_to_counts(accessible_indexes)`  | `prettyIndexNotation(accessible_indexes)` | rename accessible_indexes AS "accessible indexes" totalAccess AS "accessible indexes counts"</query>
+          <earliest>0</earliest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>
@@ -41,7 +51,9 @@
     <panel>
       <table>
         <title>User capabilities</title>
-        <searchPostProcess>| fields capabilities | mvexpand capabilities | rename capabilities AS capability</searchPostProcess>
+        <search base="v_base">
+          <query>| fields capabilities | mvexpand capabilities | rename capabilities AS capability</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
         <option name="dataOverlayMode">none</option>
@@ -55,9 +67,11 @@
     <panel>
       <chart>
         <title>User activity (last 7 days)</title>
-        <searchString>index=_internal user="$user$" (sourcetype=splunk_web_access OR sourcetype=splunkd_access) | timechart span=1h count by sourcetype</searchString>
-        <earliestTime>-7d@h</earliestTime>
-        <latestTime>now</latestTime>
+        <search>
+          <query>index=_internal user="$user$" (sourcetype=splunk_web_access OR sourcetype=splunkd_access) | timechart span=1h count by sourcetype</query>
+          <earliest>-7d@h</earliest>
+          <latest>now</latest>
+        </search>
         <option name="charting.axisTitleX.visibility">visible</option>
         <option name="charting.axisTitleY.visibility">visible</option>
         <option name="charting.axisX.scale">linear</option>
@@ -81,7 +95,9 @@
     <panel>
       <table>
         <title>User roles</title>
-        <searchPostProcess>| fields roles | mvexpand roles | rename roles AS role</searchPostProcess>
+        <search base="v_base">
+          <query>| fields roles | mvexpand roles | rename roles AS role</query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">true</option>
         <option name="dataOverlayMode">none</option>
@@ -107,9 +123,11 @@
     <panel>
       <table>
         <title>User executed searches (last 24 hours)</title>
-        <searchString>`compute_user_executed_searches($user$)`</searchString>
-        <earliestTime>-24h@h</earliestTime>
-        <latestTime>now</latestTime>
+        <search>
+          <query>`compute_user_executed_searches($user$)`</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>
