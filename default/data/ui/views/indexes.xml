@@ -1,16 +1,32 @@
-<dashboard>
+<dashboard version="1.1">
   <label>Index Overview</label>
   <description/>
-  <searchTemplate>| rest /services/data/indexes | fields title | stats count AS "aware search peers" by title | `splunk_default_vs_custom_indexes` | rename title AS index | join index [| `compute_indexes_to_roles_and_users`]
-| fields index, type, "aware search peers", role_count, user_count
-| rename role_count AS "mapped roles" user_count AS "mapped users"</searchTemplate>
+  
+  <search id="v_rest_endpoint_cloud_fun">
+    <query>
+      | rest splunk_server=local /services/server/info | table splunk_server instance_type | eval rest_endpoint=case(instance_type=="cloud", "/services/data/distributed-indexes", true(), "/services/data/indexes")
+    </query>
+    <done>
+      <set token="rest_endpoint">$result.rest_endpoint$</set>
+    </done>
+  </search>
+  
+  <search id="v_base">
+    <query>| rest $rest_endpoint$ | fields title | stats count AS "aware search peers" by title | `splunk_default_vs_custom_indexes` | rename title AS index | join type=outer index [| `compute_indexes_to_roles_and_users`]
+    | fields index, type, "aware search peers", role_count, user_count
+    | rename role_count AS "mapped roles" user_count AS "mapped users"
+    | fillnull value=0
+    | eval "aware search peers"=if(match($rest_endpoint|s$, "distributed-indexes"), "Splunk Cloud", 'aware search peers')
+    </query>
+  </search>
+
   <row>
     <panel>
       <single>
         <title>Total indexes</title>
-        <searchPostProcess>| stats count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| stats count</query>
+        </search>
         <option name="drilldown">none</option>
       </single>
     </panel>
@@ -19,9 +35,9 @@
     <panel>
       <chart>
         <title>Mapped user counts</title>
-        <searchPostProcess>| stats count by "mapped users"</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| stats count by "mapped users"</query>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -45,9 +61,9 @@
     <panel>
       <chart>
         <title>Mapped role counts</title>
-        <searchPostProcess>| stats count by "mapped roles"</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| stats count by "mapped roles"</query>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -71,7 +87,9 @@
     <panel>
       <chart>
         <title>Index types</title>
-        <searchPostProcess>| stats count by type</searchPostProcess>
+        <search base="v_base">
+          <query>| stats count by type</query>
+        </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
         <option name="charting.axisTitleX.visibility">visible</option>
@@ -97,7 +115,9 @@
     <panel>
       <table>
         <title>Indexes</title>
-        <searchPostProcess/>
+        <search base="v_base">
+          <query></query>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">none</option>

@@ -1,30 +1,44 @@
-<form script="autodiscover.js">
+<form version="1.1" script="autodiscover.js">
   <label>Index Detail</label>
-  <description/>
+  <description></description>
+  <search id="v_rest_endpoint_cloud_fun">
+    <query>
+      | rest splunk_server=local /services/server/info | table splunk_server instance_type | eval rest_endpoint=case(instance_type=="cloud", "/services/data/distributed-indexes", true(), "/services/data/indexes")
+    </query>
+    <done>
+      <set token="rest_endpoint">$result.rest_endpoint$</set>
+    </done>
+  </search>
+  <search id="v_base">
+    <query>| `compute_user_to_indexes` | join username [| rest splunk_server=local /services/authentication/users | `prettymv(roles)` | rename title AS username| fields username, roles]  | makemv delim=", " roles | makemv delim=", " accessible_indexes | mvexpand roles | mvexpand accessible_indexes  | eval searchLit=if(match("$index$" ,"^_\w+$"), "_*", "*") | where accessible_indexes=searchLit OR accessible_indexes=$index$ | fields - accessible_indexes, searchLit</query>
+  </search>
   <fieldset submitButton="true" autoRun="true">
     <input type="dropdown" token="index" searchWhenChanged="true">
       <label>Enter index:</label>
       <default>main</default>
-      <populatingSearch earliest="$earliest$" latest="$latest$" fieldForLabel="title" fieldForValue="title">| rest /services/data/indexes | fields title | dedup title | sort title</populatingSearch>
+      <fieldForLabel>title</fieldForLabel>
+      <fieldForValue>title</fieldForValue>
+      <search>
+        <query>| rest $rest_endpoint$ | fields title | dedup title | sort title</query>
+      </search>
     </input>
   </fieldset>
-  <searchTemplate>| `compute_user_to_indexes` | join username [| rest splunk_server=local /services/authentication/users | `prettymv(roles)` | rename title AS username| fields username, roles]  | makemv delim=", " roles | makemv delim=", " accessible_indexes | mvexpand roles | mvexpand accessible_indexes  | eval searchLit=if(match("$index$" ,"^_\w+$"), "_*", "*") | where accessible_indexes=searchLit OR accessible_indexes=$index$ | fields - accessible_indexes, searchLit</searchTemplate>
   <row>
     <panel>
       <single>
         <title>Users with access</title>
-        <searchPostProcess>| stats count by username | stats count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| stats count by username | stats count</query>
+        </search>
         <option name="drilldown">none</option>
       </single>
     </panel>
     <panel>
       <single>
         <title>Roles with access</title>
-        <searchPostProcess>| stats count by roles | stats count</searchPostProcess>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search base="v_base">
+          <query>| stats count by roles | stats count</query>
+        </search>
         <option name="drilldown">none</option>
       </single>
     </panel>
@@ -33,14 +47,17 @@
     <panel>
       <table>
         <title>Index details</title>
-        <searchString>| rest  /services/data/indexes/$index$  | eval archive_enabled=if(coalesce(coldToFrozenDir, coldToFrozenScript) == "","no","yes") | fields title, splunk_server, frozenTimePeriodInSecs, maxTotalDataSizeMB, archive_enabled  | eval frozenTimePeriodInSecs=(frozenTimePeriodInSecs/60/60/24)." days" | eval maxTotalDataSizeMB=tostring(maxTotalDataSizeMB/2014, "commas")." GB"  | rename maxTotalDataSizeMB AS "max index size" frozenTimePeriodInSecs AS "max index retention" archive_enabled AS "data archive" title AS index splunk_server AS "search peer"</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
-        <option name="wrap">true</option>
-        <option name="rowNumbers">false</option>
+        <search>
+          <query>| rest $rest_endpoint$/$index$ | rename archiver.* AS * | eval archive_enabled=case(isnotnull(coldStorageProvider), "yes, DDAA", isnotnull(selfStorageBucket), "yes, DDSS", coldToFrozenScript!="", "yes, coldToFrozenScript", coldToFrozenDir!="", "yes, coldToFrozenDir", true(), "no"), splunk_server=if(match(splunk_server, "\.splunkcloud.com$"), "Splunk Cloud", splunk_server)  | fields title, splunk_server, frozenTimePeriodInSecs, maxTotalDataSizeMB, archive_enabled  | eval frozenTimePeriodInSecs=(frozenTimePeriodInSecs/60/60/24)." days" | eval maxTotalDataSizeMB=tostring(maxTotalDataSizeMB/2014, "commas")." GB"  | rename maxTotalDataSizeMB AS "max index size" frozenTimePeriodInSecs AS "max index retention" archive_enabled AS "data archive" title AS index splunk_server AS "search peer"</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+        <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">none</option>
-        <option name="count">10</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
       </table>
     </panel>
   </row>
@@ -48,18 +65,13 @@
     <panel>
       <table>
         <title>Users with access</title>
-        <searchPostProcess>| mvcombine roles| `prettymv(roles)`</searchPostProcess>
-        <option name="list.wrap">1</option>
-        <option name="maxLines">5</option>
-        <option name="raw.drilldown">full</option>
+        <search base="v_base">
+          <query>| mvcombine roles| `prettymv(roles)`</query>
+        </search>
         <option name="rowNumbers">true</option>
-        <option name="table.drilldown">all</option>
-        <option name="table.wrap">1</option>
-        <option name="type">list</option>
         <option name="wrap">true</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">row</option>
-        <option name="list.drilldown">full</option>
         <drilldown>
           <link>user_details?form.user=$row.username$</link>
         </drilldown>
@@ -69,18 +81,13 @@
     <panel>
       <table>
         <title>Roles with access</title>
-        <searchPostProcess>| fields roles | dedup roles | rename roles AS role</searchPostProcess>
-        <option name="list.wrap">1</option>
-        <option name="maxLines">5</option>
-        <option name="raw.drilldown">full</option>
+        <search base="v_base">
+          <query>| fields roles | dedup roles | rename roles AS role</query>
+        </search>
         <option name="rowNumbers">true</option>
-        <option name="table.drilldown">all</option>
-        <option name="table.wrap">1</option>
-        <option name="type">list</option>
         <option name="wrap">true</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">row</option>
-        <option name="list.drilldown">full</option>
         <drilldown>
           <link>role_details?form.role=$row.role$</link>
         </drilldown>
@@ -99,9 +106,10 @@
       </input>
       <table>
         <title>Data summary (all time)</title>
-        <searchString>| metadata type=$summary_type$s index=$index$ | eval retention=tostring(abs(lastTime-firstTime), "duration") | convert ctime(firstTime) ctime(lastTime) | sort lastTime | rename $summary_type$s AS type totalCount AS "event count" firstTime AS "first event" lastTime AS "last event" $summary_type$ AS name | eval index="$index$" | fields type, index, name, "event count", "first event", "last event", retention</searchString>
-        <earliestTime>0</earliestTime>
-        <latestTime/>
+        <search>
+          <query>| metadata type=$summary_type$s index=$index$ | eval retention=tostring(abs(lastTime-firstTime), "duration") | convert ctime(firstTime) ctime(lastTime) | sort lastTime | rename totalCount AS "event count" firstTime AS "first event" lastTime AS "last event" $summary_type$ AS name | eval index="$index$" | fields type, index, name, "event count", "first event", "last event", retention</query>
+          <earliest>0</earliest>
+        </search>
         <option name="wrap">true</option>
         <option name="rowNumbers">false</option>
         <option name="dataOverlayMode">highlow</option>
